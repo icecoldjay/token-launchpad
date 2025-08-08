@@ -8,7 +8,7 @@ require("hardhat-gas-reporter");
 
 const PRIVATE_KEY =
   process.env.OWNER_PRIVATE_KEY ||
-  "0x7869eed332b218bf98bc4c4fbf7b533fe9943acbdc3448b10e407503c1aadf1a";
+  "0x2e1ec32c33325d85221c7f4f0947eb59e027119cf050214c39d3f3d3caa30edf";
 
 // Mainnet RPC URLs
 const MAINNET_RPC_URL =
