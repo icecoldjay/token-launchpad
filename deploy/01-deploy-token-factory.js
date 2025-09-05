@@ -22,7 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const tokenFactory = await deploy("TokenFactory", {
       from: deployer,
       args: [
-        feeCollectorAddress, // Use the hardcoded address directly
+        feeCollectorAddress || deployer, // Fee collector address with fallback
         creationFee,
       ],
       log: true,

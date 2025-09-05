@@ -17,7 +17,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   try {
     // Determine the Uniswap V3 Position Manager address
     const routerAddress = ROUTER_ADDRESSES[chainId] || 
-      "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"; // Fallback to Mainnet address
+      "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3"; // Fallback to Sepolia address
 
     log("----------------------------------------------------");
     log("Deploying LiquidityManager contract...");

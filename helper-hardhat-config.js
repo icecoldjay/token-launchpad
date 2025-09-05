@@ -57,7 +57,9 @@ const routerAddress = {
 
 // Contract Addresses
 // For local development, these will be overridden
-const feeCollectorAddress = "0x6226C50292654ed8925E7563575f452ec5276DaE";
+const feeCollectorAddress =
+  process.env.FEE_COLLECTOR_ADDRESS ||
+  "0x0000000000000000000000000000000000000000";
 
 const tokenCreationFeeConfig = process.env.TOKEN_CREATION_FEE || "0.0001";
 const tokenSaleFeeConfig = "0.0001";

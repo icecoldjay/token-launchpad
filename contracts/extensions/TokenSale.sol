@@ -20,7 +20,10 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         address paymentToken; // Token used to buy (address(0) for ETH)
         uint256 rate; // Rate of token per payment token (or ETH) in base units
         uint256 hardCap; // Maximum tokens to sell
-        uint256 softCap; // Minimum tokens to sell for sale to be successful
+        uint256 ethSoftCap; // Minimum ETH to raise (in wei)
+        uint256 tokenSoftCap; // Minimum tokens to raise (in token's native units)
+        uint256 ethHardCap; // Maximum ETH to raise (in wei)
+        uint256 tokenHardCap; // Maximum tokens to raise (in token's native units)
         uint256 minContribution; // Minimum contribution per buyer
         uint256 maxContribution; // Maximum contribution per buyer
         uint256 startTime; // Sale start timestamp
@@ -111,7 +114,10 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         address paymentToken,
         uint256 rate,
         uint256 hardCap,
-        uint256 softCap,
+        uint256 ethSoftCap,
+        uint256 tokenSoftCap,
+        uint256 ethHardCap,
+        uint256 tokenHardCap,
         uint256 minContribution,
         uint256 maxContribution,
         uint256 startTime,
@@ -125,7 +131,12 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         require(token != address(0), "Invalid token address");
         require(rate > 0, "Invalid rate");
         require(hardCap > 0, "Invalid hard cap");
-        require(softCap > 0 && softCap <= hardCap, "Invalid soft cap");
+        require(ethSoftCap > 0, "Invalid ETH soft cap");
+        require(tokenSoftCap > 0, "Invalid token soft cap");
+        require(ethHardCap > 0, "Invalid ETH hard cap");
+        require(tokenHardCap > 0, "Invalid token hard cap");
+        require(ethSoftCap <= ethHardCap, "ETH soft cap must be <= hard cap");
+        require(tokenSoftCap <= tokenHardCap, "Token soft cap must be <= hard cap");
         require(minContribution > 0, "Invalid min contribution");
         require(maxContribution >= minContribution, "Invalid max contribution");
         require(
@@ -153,7 +164,10 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
                 paymentToken: paymentToken,
                 rate: rate,
                 hardCap: hardCap,
-                softCap: softCap,
+                ethSoftCap: ethSoftCap,
+                tokenSoftCap: tokenSoftCap,
+                ethHardCap: ethHardCap,
+                tokenHardCap: tokenHardCap,
                 minContribution: minContribution,
                 maxContribution: maxContribution,
                 startTime: startTime,
@@ -208,7 +222,7 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         SaleConfig storage sale = sales[saleId];
         require(!sale.isFinalized, "Sale already finalized");
         require(
-            msg.sender == sale.creator || msg.sender == tx.origin,
+            msg.sender == sale.creator,
             "Not authorized"
         );
 
@@ -238,7 +252,11 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         uint256 tokenAmount = (msg.value * sale.rate) / 1 ether;
         require(
             sale.tokensSold + tokenAmount <= sale.hardCap,
-            "Exceeds hard cap"
+            "Exceeds token hard cap"
+        );
+        require(
+            sale.ethRaised + msg.value <= sale.ethHardCap,
+            "Exceeds ETH hard cap"
         );
 
         // Check maximum contribution limit
@@ -290,7 +308,11 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
         uint256 tokenAmount = (amount * sale.rate) / 10 ** 18;
         require(
             sale.tokensSold + tokenAmount <= sale.hardCap,
-            "Exceeds hard cap"
+            "Exceeds token hard cap"
+        );
+        require(
+            sale.tokenRaised + amount <= sale.tokenHardCap,
+            "Exceeds token payment hard cap"
         );
 
         // Check maximum contribution limit
@@ -436,11 +458,13 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
             "Sale still in progress"
         );
         require(
-            msg.sender == sale.creator || msg.sender == tx.origin,
+            msg.sender == sale.creator,
             "Not authorized"
         );
 
-        bool isSuccessful = (sale.paymentToken == address(0) ? sale.ethRaised : sale.tokenRaised) >= sale.softCap;
+        bool isSuccessful = (sale.paymentToken == address(0) ? 
+            sale.ethRaised >= sale.ethSoftCap : 
+            sale.tokenRaised >= sale.tokenSoftCap);
 
         if (isSuccessful) {
             // Mark sale as finalized and set vesting start time if enabled
@@ -596,8 +620,6 @@ contract TokenSaleManager is Ownable, ReentrancyGuard {
     ) external onlyOwner {
         IERC20(tokenAddress).transfer(recipient, amount);
     }
-
-
 
     /**
      * @dev Emergency function to rescue ETH sent to this contract by mistake

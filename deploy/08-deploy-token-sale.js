@@ -4,7 +4,7 @@ const {
   tokenSaleFeeConfig,
 } = require("../helper-hardhat-config");
 
-// Address: 0x0E0C6677e4D5446adE7E3472ef15420C85Ef6ecf
+// Address: 0x2BE1aA728C48a4C26995bE51318A93b3369707c1
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
